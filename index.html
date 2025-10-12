@@ -1339,7 +1339,7 @@ The formula is:
         });
 
         // ============= KEYBOARD SHORTCUTS =============
-
+        
         document.addEventListener('keydown', (e) => {
             // Ctrl/Cmd + K: Clear all
             if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -1349,7 +1349,7 @@ The formula is:
                 batchOutput.innerHTML = '';
                 batchStats.style.display = 'none';
             }
-
+            
             // Escape: Close description if open
             if (e.key === 'Escape') {
                 const descContent = document.getElementById('descContent');
@@ -1360,6 +1360,17 @@ The formula is:
                 }
             }
         });
+
+        // ============= ANALYTICS (DEPLOYED VERSION ONLY) =============
+        
+        // Only load GoatCounter on GitHub Pages, not on localhost
+        if (window.location.hostname.includes('github.io')) {
+            const script = document.createElement('script');
+            script.setAttribute('data-goatcounter', 'https://tomvoelker.goatcounter.com/count');
+            script.setAttribute('async', '');
+            script.src = '//gc.zgo.at/count.js';
+            document.body.appendChild(script);
+        }
     </script>
 </body>
 
