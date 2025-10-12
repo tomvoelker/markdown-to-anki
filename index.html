@@ -7,7 +7,8 @@
     <title>Markdown to Anki HTML Converter</title>
     <meta name="description"
         content="Convert markdown with LaTeX math to Anki's HTML format. Supports single cards and batch processing.">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📝</text></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📝</text></svg>">
     <script>
         window.MathJax = {
             tex: {
@@ -723,14 +724,18 @@
             <p style="margin-bottom: 10px;"><strong>About:</strong> Born from frustration with LLMs generating markdown
                 that Anki can't handle. This tool bridges the gap between AI-generated study materials and Anki's
                 specific HTML format.</p>
-            <p style="margin-bottom: 10px;">A simple, vibecoded tool built primarily for personal use. All processing happens locally in your browser.</p>
+            <p style="margin-bottom: 10px;">A simple, vibecoded tool built primarily for personal use. All processing
+                happens locally in your browser.</p>
             <p style="margin-bottom: 10px;">
-                <strong>Keyboard shortcuts:</strong> 
-                <kbd style="padding: 2px 6px; background: #f0f0f0; border-radius: 3px; font-size: 0.9em;">Ctrl/Cmd + K</kbd> Clear all · 
-                <kbd style="padding: 2px 6px; background: #f0f0f0; border-radius: 3px; font-size: 0.9em;">Esc</kbd> Close info
+                <strong>Keyboard shortcuts:</strong>
+                <kbd style="padding: 2px 6px; background: #f0f0f0; border-radius: 3px; font-size: 0.9em;">Ctrl/Cmd +
+                    K</kbd> Clear all ·
+                <kbd style="padding: 2px 6px; background: #f0f0f0; border-radius: 3px; font-size: 0.9em;">Esc</kbd>
+                Close info
             </p>
             <p style="margin-bottom: 10px;">
-                <a href="https://github.com/tomvolker/markdown-to-anki" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none;">
+                <a href="https://github.com/tomvoelker/markdown-to-anki" target="_blank" rel="noopener"
+                    style="color: #0066cc; text-decoration: none;">
                     <strong>GitHub</strong> ↗
                 </a>
             </p>
@@ -1336,7 +1341,7 @@ The formula is:
         });
 
         // ============= KEYBOARD SHORTCUTS =============
-        
+
         document.addEventListener('keydown', (e) => {
             // Ctrl/Cmd + K: Clear all
             if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -1346,7 +1351,7 @@ The formula is:
                 batchOutput.innerHTML = '';
                 batchStats.style.display = 'none';
             }
-            
+
             // Escape: Close description if open
             if (e.key === 'Escape') {
                 const descContent = document.getElementById('descContent');
