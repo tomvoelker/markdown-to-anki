@@ -7,21 +7,23 @@
     <title>Markdown to Anki HTML Converter</title>
     <meta name="description"
         content="Convert markdown with LaTeX math to Anki's HTML format. Supports single cards and batch processing.">
-    
+
     <!-- Open Graph / Social Media -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://tomvoelker.github.io/markdown-to-anki/">
     <meta property="og:title" content="Markdown to Anki HTML Converter">
-    <meta property="og:description" content="Simple tool to convert markdown with LaTeX to Anki HTML. Vibecoded for personal use.">
+    <meta property="og:description"
+        content="Simple tool to convert markdown with LaTeX to Anki HTML. Vibecoded for personal use.">
     <meta property="og:image" content="https://tomvoelker.github.io/markdown-to-anki/preview.png">
-    
+
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://tomvoelker.github.io/markdown-to-anki/">
     <meta property="twitter:title" content="Markdown to Anki HTML Converter">
-    <meta property="twitter:description" content="Simple tool to convert markdown with LaTeX to Anki HTML. Vibecoded for personal use.">
+    <meta property="twitter:description"
+        content="Simple tool to convert markdown with LaTeX to Anki HTML. Vibecoded for personal use.">
     <meta property="twitter:image" content="https://tomvoelker.github.io/markdown-to-anki/preview.png">
-    
+
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📝</text></svg>">
     <script>
@@ -192,7 +194,7 @@
 
         .description li {
             padding: 6px 0;
-            color: #555;
+            color: var(--text-secondary);
             line-height: 1.5;
         }
 
@@ -212,7 +214,7 @@
             top: 10px;
             right: 10px;
             padding: 6px 12px;
-            background: #0066cc;
+            background: var(--accent-color);
             color: white;
             border: none;
             border-radius: 6px;
@@ -225,7 +227,7 @@
         }
 
         .paste-sample-btn:hover {
-            background: #0052a3;
+            background: var(--accent-hover);
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(0, 102, 204, 0.3);
         }
@@ -294,7 +296,7 @@
 
         .panel-title {
             font-weight: 600;
-            color: #333;
+            color: var(--text-primary);
             font-size: 1.1em;
         }
 
@@ -338,6 +340,11 @@
             border-color: var(--accent-color);
         }
 
+        textarea::placeholder {
+            color: var(--text-tertiary);
+            opacity: 0.7;
+        }
+
         #input {
             background: var(--bg-tertiary);
         }
@@ -364,7 +371,7 @@
 
         .preview-box:empty::before {
             content: 'Live preview will appear here...';
-            color: #999;
+            color: var(--text-tertiary);
             font-style: italic;
         }
 
@@ -383,17 +390,17 @@
         }
 
         .info-box {
-            background: #f8f9fa;
-            border-left: 4px solid #0066cc;
+            background: var(--bg-tertiary);
+            border-left: 4px solid var(--accent-color);
             padding: 15px;
             border-radius: 8px;
             font-size: 0.9em;
-            color: #495057;
+            color: var(--text-secondary);
             line-height: 1.6;
         }
 
         .info-box strong {
-            color: #0066cc;
+            color: var(--accent-color);
         }
 
         .clear-btn {
@@ -538,18 +545,18 @@
             align-items: center;
             margin-bottom: 15px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #f0f0f0;
+            border-bottom: 2px solid var(--border-color);
         }
 
         .card-number {
             font-weight: 600;
-            color: #0066cc;
+            color: var(--accent-color);
             font-size: 0.9em;
         }
 
         .copy-card-btn {
             padding: 6px 16px;
-            background: #0066cc;
+            background: var(--accent-color);
             color: white;
             border: none;
             border-radius: 6px;
@@ -580,7 +587,7 @@
         }
 
         .copy-card-btn:hover {
-            background: #0052a3;
+            background: var(--accent-hover);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
         }
@@ -633,7 +640,7 @@
 
         .card-section-title {
             font-weight: 600;
-            color: #999;
+            color: var(--text-tertiary);
             font-size: 0.8em;
             text-transform: uppercase;
             margin-bottom: 8px;
@@ -642,10 +649,11 @@
 
         .card-content {
             padding: 12px;
-            background: #f9f9f9;
+            background: var(--bg-tertiary);
             border-radius: 8px;
             font-size: 0.95em;
             line-height: 1.6;
+            color: var(--text-primary);
         }
 
         .card-preview {
@@ -675,11 +683,12 @@
         .batch-stats {
             text-align: center;
             padding: 15px;
-            background: #e7f3ff;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             margin-bottom: 20px;
             font-weight: 600;
-            color: #0066cc;
+            color: var(--accent-color);
         }
 
         .error-card {
@@ -1275,7 +1284,7 @@ The formula is:
 
             batchStats.style.display = 'block';
             batchStats.textContent = `📚 ${cards.length} card${cards.length === 1 ? '' : 's'} processed`;
-            
+
             trackEvent('/batch-process-' + cards.length + '-cards');
 
             batchOutput.innerHTML = cards.map(card => {
@@ -1353,7 +1362,7 @@ The formula is:
             const text = `Question: ${questionHtml}\n\nAnswer: ${answerHtml}`;
             const btn = event.target;
             const originalText = btn.textContent;
-            
+
             try {
                 await navigator.clipboard.writeText(text);
                 btn.textContent = '✓ Copied!';
@@ -1380,7 +1389,7 @@ The formula is:
         async function copyCardPart(index, part, html) {
             const btn = event.target;
             const originalText = btn.textContent;
-            
+
             try {
                 await navigator.clipboard.writeText(html);
                 btn.textContent = '✓';
@@ -1449,34 +1458,41 @@ The formula is:
         });
 
         // ============= DARK MODE =============
-        
+
         function toggleDarkMode() {
             const html = document.documentElement;
             const currentTheme = html.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             const toggle = document.getElementById('darkModeToggle');
-            
+
             html.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
-            
+
             toggle.textContent = newTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
-            
+
             // Track theme change (only on deployed version)
             if (window.goatcounter) {
                 window.goatcounter.count({ path: '/theme-' + newTheme, event: true });
             }
         }
 
-        // Load saved theme preference
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        if (savedTheme === 'dark') {
+        // Load theme: saved preference > system preference > light
+        let theme = localStorage.getItem('theme');
+        if (!theme) {
+            // No saved preference, check system preference
+            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        if (theme === 'dark') {
             document.documentElement.setAttribute('data-theme', 'dark');
-            const toggle = document.getElementById('darkModeToggle');
-            if (toggle) toggle.textContent = '☀️ Light';
+            // Update toggle button when it's available
+            window.addEventListener('load', () => {
+                const toggle = document.getElementById('darkModeToggle');
+                if (toggle) toggle.textContent = '☀️ Light';
+            });
         }
 
         // ============= ANALYTICS (DEPLOYED VERSION ONLY) =============
-        
+
         // Only load GoatCounter on GitHub Pages, not on localhost
         if (window.location.hostname.includes('github.io')) {
             const script = document.createElement('script');
