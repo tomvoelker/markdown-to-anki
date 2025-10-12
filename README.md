@@ -21,7 +21,7 @@ It's a single-page app that does everything client-side. No server, no dependenc
 
 Just open `index.html` in your browser. That's it.
 
-Or use it online: [Live Demo](https://tomvolker.github.io/markdown-to-anki) *(if hosted)*
+Or use it online: [https://tomvoelker.github.io/markdown-to-anki](https://tomvoelker.github.io/markdown-to-anki)
 
 ## Conversions
 
@@ -36,7 +36,7 @@ Or use it online: [Live Demo](https://tomvolker.github.io/markdown-to-anki) *(if
 
 ## Batch Mode Format
 
-```
+~~~
 ```
 Your question here with **bold** and \(math\)
 ```
@@ -54,13 +54,13 @@ Next question
 ```
 Next answer
 ```
-```
+~~~
 
 Separate cards with `-----` (5 dashes).
 
 ## Why?
 
-Because copying markdown from ChatGPT/Claude into Anki was driving me nuts. Built this in a few hours with Claude's help. It works for me, hope it works for you too. 🤷‍♂️
+Because copying markdown from ChatGPT/Claude into Anki was driving me nuts. Built this in a few minutes with Claude's help. It works for me, hope it works for you too. 🤷‍♂️
 
 ## Technical Details
 
