@@ -7,6 +7,21 @@
     <title>Markdown to Anki HTML Converter</title>
     <meta name="description"
         content="Convert markdown with LaTeX math to Anki's HTML format. Supports single cards and batch processing.">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tomvoelker.github.io/markdown-to-anki/">
+    <meta property="og:title" content="Markdown to Anki HTML Converter">
+    <meta property="og:description" content="Simple tool to convert markdown with LaTeX to Anki HTML. Vibecoded for personal use.">
+    <meta property="og:image" content="https://tomvoelker.github.io/markdown-to-anki/preview.png">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://tomvoelker.github.io/markdown-to-anki/">
+    <meta property="twitter:title" content="Markdown to Anki HTML Converter">
+    <meta property="twitter:description" content="Simple tool to convert markdown with LaTeX to Anki HTML. Vibecoded for personal use.">
+    <meta property="twitter:image" content="https://tomvoelker.github.io/markdown-to-anki/preview.png">
+    
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📝</text></svg>">
     <script>
@@ -22,6 +37,34 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
     <style>
+        :root {
+            --bg-primary: #f5f7fa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f8f9fa;
+            --text-primary: #1a1a1a;
+            --text-secondary: #495057;
+            --text-tertiary: #6c757d;
+            --border-color: #e0e0e0;
+            --border-subtle: #e8ecef;
+            --accent-color: #0066cc;
+            --accent-hover: #0052a3;
+            --shadow: rgba(0, 0, 0, 0.08);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #242424;
+            --text-primary: #e8e8e8;
+            --text-secondary: #b8b8b8;
+            --text-tertiary: #888;
+            --border-color: #404040;
+            --border-subtle: #333;
+            --accent-color: #4a9eff;
+            --accent-hover: #6db0ff;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -30,15 +73,17 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f5f7fa;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
             padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .container {
-            background: white;
+            background: var(--bg-secondary);
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 2px 8px var(--shadow);
             width: 100%;
             max-width: 1400px;
             margin: 0 auto;
@@ -49,18 +94,38 @@
             text-align: center;
             margin-bottom: 40px;
             padding-bottom: 30px;
-            border-bottom: 2px solid #e8ecef;
+            border-bottom: 2px solid var(--border-subtle);
+            position: relative;
+        }
+
+        .dark-mode-toggle {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+            color: var(--text-secondary);
+        }
+
+        .dark-mode-toggle:hover {
+            background: var(--bg-primary);
+            transform: translateY(-1px);
         }
 
         h1 {
-            color: #1a1a1a;
+            color: var(--text-primary);
             margin-bottom: 12px;
             font-size: 2.2em;
             font-weight: 700;
         }
 
         .subtitle {
-            color: #666;
+            color: var(--text-secondary);
             font-size: 1.05em;
             line-height: 1.6;
             max-width: 800px;
@@ -68,7 +133,7 @@
         }
 
         .description {
-            background: #f8f9fa;
+            background: var(--bg-tertiary);
             padding: 0;
             border-radius: 8px;
             margin-top: 20px;
@@ -76,6 +141,7 @@
             max-width: 900px;
             margin: 20px auto 0;
             overflow: hidden;
+            border: 1px solid var(--border-color);
         }
 
         .description-header {
@@ -88,17 +154,17 @@
         }
 
         .description-header:hover {
-            background: #e9ecef;
+            background: var(--bg-primary);
         }
 
         .description-header h3 {
-            color: #1a1a1a;
+            color: var(--text-primary);
             font-size: 1.1em;
             margin: 0;
         }
 
         .description-toggle {
-            color: #0066cc;
+            color: var(--accent-color);
             font-size: 1.2em;
             transition: transform 0.3s;
         }
@@ -178,25 +244,25 @@
 
         .tab-button {
             padding: 12px 30px;
-            background: white;
-            border: 2px solid #dee2e6;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
             border-radius: 8px;
             font-size: 1em;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            color: #495057;
+            color: var(--text-secondary);
         }
 
         .tab-button:hover {
-            background: #f8f9fa;
-            border-color: #0066cc;
+            background: var(--bg-tertiary);
+            border-color: var(--accent-color);
         }
 
         .tab-button.active {
-            background: #0066cc;
+            background: var(--accent-color);
             color: white;
-            border-color: #0066cc;
+            border-color: var(--accent-color);
         }
 
         .tab-content {
@@ -256,40 +322,44 @@
             width: 100%;
             min-height: 400px;
             padding: 15px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-color);
             border-radius: 12px;
             font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
             font-size: 14px;
             resize: vertical;
-            transition: border-color 0.3s;
+            transition: border-color 0.3s, background-color 0.3s, color 0.3s;
             line-height: 1.6;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
         }
 
         textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--accent-color);
         }
 
         #input {
-            background: #fafafa;
+            background: var(--bg-tertiary);
         }
 
         #output {
-            background: #f5f5f5;
-            color: #333;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
         }
 
         .preview-box {
             width: 100%;
             min-height: 400px;
             padding: 20px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-color);
             border-radius: 12px;
-            background: white;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
             overflow-y: auto;
             line-height: 1.6;
             font-size: 16px;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
 
         .preview-box:empty::before {
@@ -425,18 +495,20 @@
             width: 100%;
             min-height: 400px;
             padding: 15px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-color);
             border-radius: 12px;
             font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
             font-size: 14px;
             resize: vertical;
             line-height: 1.6;
-            background: #fafafa;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            transition: border-color 0.3s, background-color 0.3s, color 0.3s;
         }
 
         .batch-input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--accent-color);
         }
 
         .batch-output {
@@ -447,8 +519,8 @@
         }
 
         .card-item {
-            background: white;
-            border: 2px solid #e0e0e0;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
             border-radius: 12px;
             padding: 20px;
             position: relative;
@@ -456,7 +528,7 @@
         }
 
         .card-item:hover {
-            border-color: #0066cc;
+            border-color: var(--accent-color);
             box-shadow: 0 4px 12px rgba(0, 102, 204, 0.15);
         }
 
@@ -578,11 +650,12 @@
 
         .card-preview {
             padding: 15px;
-            background: white;
+            background: var(--bg-secondary);
             border-radius: 8px;
-            border: 1px solid #e8e8e8;
+            border: 1px solid var(--border-color);
             font-size: 0.95em;
             line-height: 1.6;
+            color: var(--text-primary);
         }
 
         .card-preview b {
@@ -630,6 +703,7 @@
 
     <div class="container">
         <div class="header">
+            <button class="dark-mode-toggle" onclick="toggleDarkMode()" id="darkModeToggle">🌙 Dark</button>
             <h1>Markdown to Anki HTML Converter</h1>
             <p class="subtitle">
                 A specialized tool for converting markdown with LaTeX math notation into Anki's HTML format.
@@ -729,9 +803,15 @@
                 <kbd style="padding: 2px 6px; background: #f0f0f0; border-radius: 3px; font-size: 0.85em;">Ctrl/Cmd +
                     K</kbd> Clear ·
                 <kbd style="padding: 2px 6px; background: #f0f0f0; border-radius: 3px; font-size: 0.85em;">Esc</kbd>
-                Close info ·
+                Close info
+            </p>
+            <p style="margin-bottom: 15px; font-size: 0.9em;">
                 <a href="https://github.com/tomvoelker/markdown-to-anki" target="_blank" rel="noopener"
-                    style="color: #0066cc; text-decoration: none;">GitHub ↗</a>
+                    style="color: #0066cc; text-decoration: none;">GitHub ↗</a> ·
+                <a href="https://github.com/tomvoelker/markdown-to-anki/stargazers" target="_blank" rel="noopener"
+                    style="color: #0066cc; text-decoration: none;">⭐ Star</a> ·
+                <a href="https://github.com/tomvoelker/markdown-to-anki/issues/new" target="_blank" rel="noopener"
+                    style="color: #0066cc; text-decoration: none;">🐛 Report Bug</a>
             </p>
             <p style="font-size: 0.8em; color: #868e96;">
                 Math rendering by <a href="https://www.mathjax.org/" target="_blank" rel="noopener"
@@ -978,6 +1058,7 @@
             try {
                 await navigator.clipboard.writeText(text);
                 showCopyIndicator();
+                trackEvent('/convert-single');
                 return true;
             } catch (err) {
                 console.error('Failed to copy:', err);
@@ -1106,6 +1187,7 @@ The formula is:
             input.dispatchEvent(new Event('input'));
             const btn = document.getElementById('singleSampleBtn');
             btn.classList.add('hidden');
+            trackEvent('/sample-single');
         }
 
         function pasteSampleBatch() {
@@ -1113,6 +1195,7 @@ The formula is:
             batchInput.dispatchEvent(new Event('input'));
             const btn = document.getElementById('batchSampleBtn');
             btn.classList.add('hidden');
+            trackEvent('/sample-batch');
         }
 
         // ============= BATCH MODE FUNCTIONS =============
@@ -1192,6 +1275,8 @@ The formula is:
 
             batchStats.style.display = 'block';
             batchStats.textContent = `📚 ${cards.length} card${cards.length === 1 ? '' : 's'} processed`;
+            
+            trackEvent('/batch-process-' + cards.length + '-cards');
 
             batchOutput.innerHTML = cards.map(card => {
                 if (card.error) {
@@ -1268,13 +1353,14 @@ The formula is:
             const text = `Question: ${questionHtml}\n\nAnswer: ${answerHtml}`;
             const btn = event.target;
             const originalText = btn.textContent;
-
+            
             try {
                 await navigator.clipboard.writeText(text);
                 btn.textContent = '✓ Copied!';
                 btn.classList.remove('error');
                 btn.classList.add('copied');
                 showCopyIndicator();
+                trackEvent('/batch-copy-both');
                 setTimeout(() => {
                     btn.textContent = originalText;
                     btn.classList.remove('copied');
@@ -1294,13 +1380,14 @@ The formula is:
         async function copyCardPart(index, part, html) {
             const btn = event.target;
             const originalText = btn.textContent;
-
+            
             try {
                 await navigator.clipboard.writeText(html);
                 btn.textContent = '✓';
                 btn.classList.remove('error');
                 btn.classList.add('copied');
                 showCopyIndicator();
+                trackEvent('/batch-copy-' + part);
                 setTimeout(() => {
                     btn.textContent = originalText;
                     btn.classList.remove('copied');
@@ -1339,7 +1426,7 @@ The formula is:
         });
 
         // ============= KEYBOARD SHORTCUTS =============
-        
+
         document.addEventListener('keydown', (e) => {
             // Ctrl/Cmd + K: Clear all
             if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -1349,7 +1436,7 @@ The formula is:
                 batchOutput.innerHTML = '';
                 batchStats.style.display = 'none';
             }
-            
+
             // Escape: Close description if open
             if (e.key === 'Escape') {
                 const descContent = document.getElementById('descContent');
@@ -1361,6 +1448,33 @@ The formula is:
             }
         });
 
+        // ============= DARK MODE =============
+        
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            const toggle = document.getElementById('darkModeToggle');
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            toggle.textContent = newTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
+            
+            // Track theme change (only on deployed version)
+            if (window.goatcounter) {
+                window.goatcounter.count({ path: '/theme-' + newTheme, event: true });
+            }
+        }
+
+        // Load saved theme preference
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            const toggle = document.getElementById('darkModeToggle');
+            if (toggle) toggle.textContent = '☀️ Light';
+        }
+
         // ============= ANALYTICS (DEPLOYED VERSION ONLY) =============
         
         // Only load GoatCounter on GitHub Pages, not on localhost
@@ -1370,6 +1484,13 @@ The formula is:
             script.setAttribute('async', '');
             script.src = '//gc.zgo.at/count.js';
             document.body.appendChild(script);
+        }
+
+        // Helper to track custom events (only works when deployed)
+        function trackEvent(eventName) {
+            if (window.goatcounter && window.location.hostname.includes('github.io')) {
+                window.goatcounter.count({ path: eventName, event: true });
+            }
         }
     </script>
 </body>
