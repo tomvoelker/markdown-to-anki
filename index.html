@@ -725,8 +725,8 @@
                 </div>
                 <div class="description-content" id="descContent">
                     <ul>
-                        <li><strong>Bold/Italic:</strong> Converts **bold** or __bold__ and *italic* or _italic_ to
-                            &lt;b&gt; tags</li>
+                        <li><strong>Bold/Italic:</strong> Converts **bold** or __bold__ to &lt;b&gt;, and *italic* or
+                            _italic_ to &lt;i&gt;</li>
                         <li><strong>Math:</strong> Inline math \(x\) or $x$ → &lt;anki-mathjax&gt;, Block math \[x\] or
                             $$x$$ → &lt;anki-mathjax block="true"&gt;</li>
                         <li><strong>Lists:</strong> Markdown lists (-, *, 1.) converted to proper HTML
@@ -882,15 +882,13 @@
             // STEP 1.5: Handle bold/italic that contains math tags
             // Use non-greedy matching and ensure we don't match across multiple bold sections
             // Match **, then content (including <anki-mathjax> tags), then ** (but not ***)
-            html = html.replace(/\*\*(?!\*)(.+?)\*\*(?!\*)/g, function (match, content) {
-                // Only process if it contains anki-mathjax tags
+            html = html.replace(/\*\*(?!\*)([\s\S]*?)\*\*(?!\*)/g, function (match, content) {
                 if (content.includes('<anki-mathjax')) {
                     return '<b>' + content + '</b>';
                 }
-                // Otherwise return unchanged to be processed later
                 return match;
             });
-            html = html.replace(/__(?!_)(.+?)__(?!_)/g, function (match, content) {
+            html = html.replace(/__(?!_)([\s\S]*?)__(?!_)/g, function (match, content) {
                 if (content.includes('<anki-mathjax')) {
                     return '<b>' + content + '</b>';
                 }
@@ -901,29 +899,38 @@
             // Split by math tags to avoid modifying content inside them
             let parts = html.split(/(<anki-mathjax[^>]*>[\s\S]*?<\/anki-mathjax>)/);
 
+            const applyEmphasis = (segment) => {
+                let part = segment;
+
+                // Combined bold + italic
+                part = part.replace(/\*\*\*([\s\S]+?)\*\*\*/g, '<b><i>$1</i></b>');
+                part = part.replace(/___([\s\S]+?)___/g, '<b><i>$1</i></b>');
+                part = part.replace(/\*\*_([\s\S]+?)_\*\*/g, '<b><i>$1</i></b>');
+                part = part.replace(/__\*([\s\S]+?)\*__/g, '<b><i>$1</i></b>');
+
+                // Bold
+                part = part.replace(/\*\*(?!\*)([\s\S]+?)\*\*(?!\*)/g, '<b>$1</b>');
+                part = part.replace(/__(?!_)([\s\S]+?)__(?!_)/g, '<b>$1</b>');
+
+                // Italic (avoid consuming markdown list markers or bold markers)
+                part = part.replace(/(^|[^*])\*([^*\n]+?)\*(?!\*)/g, (m, prefix, content) => prefix + '<i>' + content + '</i>');
+                part = part.replace(/(^|[^_])_([^_\n]+?)_(?!_)/g, (m, prefix, content) => prefix + '<i>' + content + '</i>');
+
+                return part;
+            };
+
             for (let i = 0; i < parts.length; i++) {
                 // Only process non-math parts
                 if (!parts[i].startsWith('<anki-mathjax')) {
-                    // Convert bold+italic combinations first (*** or ___ or **_ or __*)
-                    parts[i] = parts[i].replace(/\*\*\*([^*]+)\*\*\*/g, '<b>$1</b>');
-                    parts[i] = parts[i].replace(/___([^_]+)___/g, '<b>$1</b>');
-                    parts[i] = parts[i].replace(/\*\*_([^*_]+)_\*\*/g, '<b>$1</b>');
-                    parts[i] = parts[i].replace(/__\*([^*_]+)\*__/g, '<b>$1</b>');
-
-                    // Convert **bold** and __bold__ to <b>
-                    parts[i] = parts[i].replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
-                    parts[i] = parts[i].replace(/__([^_]+)__/g, '<b>$1</b>');
-
-                    // Convert *italic* and _italic_ to <b> (Anki uses bold for italic too)
-                    parts[i] = parts[i].replace(/\*([^*]+)\*/g, '<b>$1</b>');
-                    parts[i] = parts[i].replace(/_([^_]+)_/g, '<b>$1</b>');
+                    parts[i] = applyEmphasis(parts[i]);
                 }
             }
 
             html = parts.join('');
 
-            // Replace space after </b> with &nbsp; (but not newlines!)
+            // Replace space after closing tags with &nbsp; (but not newlines!)
             html = html.replace(/<\/b>[ \t]+/g, '</b>&nbsp;');
+            html = html.replace(/<\/i>[ \t]+/g, '</i>&nbsp;');
 
             // Handle lists
             const lines = html.split('\n');
@@ -1009,7 +1016,9 @@
 
                     // Add paragraph break if there were empty lines before this
                     if (emptyLineCount > 0 && processed.length > 0) {
-                        processed.push('<br>');
+                        for (let j = 0; j < emptyLineCount; j++) {
+                            processed.push('<br>');
+                        }
                     }
 
                     processed.push(trimmed);
@@ -1024,19 +1033,19 @@
                 processed.push('<' + listTag + '>' + listItems.map(item => '<li>' + item + '</li>').join('') + '</' + listTag + '>');
             }
 
-            // Join processed parts with spaces
-            html = processed.join(' ');
+            // Join processed parts with newlines to preserve spacing
+            html = processed.join('\n');
 
-            // Clean up multiple spaces (but not within <anki-mathjax> tags)
+            // Clean up multiple spaces (but not within <anki-mathjax> tags), preserve newlines
             let spaceParts = html.split(/(<anki-mathjax[^>]*>[\s\S]*?<\/anki-mathjax>)/);
             for (let i = 0; i < spaceParts.length; i++) {
                 if (!spaceParts[i].startsWith('<anki-mathjax')) {
-                    spaceParts[i] = spaceParts[i].replace(/\s+/g, ' ');
+                    spaceParts[i] = spaceParts[i].replace(/[ \t]{2,}/g, ' ');
                 }
             }
             html = spaceParts.join('');
 
-            return html.trim();
+            return html;
         }
 
         function renderPreview(ankiHtml) {
@@ -1235,12 +1244,12 @@ The formula is:
             sections.forEach((section, index) => {
                 try {
                     // Extract code blocks (question and answer)
-                    const codeBlockRegex = /```\s*\n?([\s\S]*?)```/g;
+                    const codeBlockRegex = /```[ \t]*([a-zA-Z0-9_-]+)?[ \t]*\n?([\s\S]*?)```/g;
                     const matches = [...section.matchAll(codeBlockRegex)];
 
                     if (matches.length >= 2) {
-                        const question = matches[0][1].trim();
-                        const answer = matches[1][1].trim();
+                        const question = matches[0][2] ?? '';
+                        const answer = matches[1][2] ?? '';
 
                         if (question || answer) {
                             cards.push({

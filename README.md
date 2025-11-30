@@ -28,7 +28,7 @@ Or use it online: [https://tomvoelker.github.io/markdown-to-anki](https://tomvoe
 | Markdown | Anki HTML |
 |----------|-----------|
 | `**bold**` or `__bold__` | `<b>bold</b>` |
-| `*italic*` or `_italic_` | `<b>italic</b>` |
+| `*italic*` or `_italic_` | `<i>italic</i>` |
 | `\(x^2\)` or `$x^2$` | `<anki-mathjax>x^2</anki-mathjax>` |
 | `\[E=mc^2\]` or `$$E=mc^2$$` | `<anki-mathjax block="true">E=mc^2</anki-mathjax>` |
 | `- item` | `<ul><li>item</li></ul>` |
