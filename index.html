@@ -865,7 +865,7 @@
 
             // STEP 0: Protect inline code spans so math/emphasis don't alter them
             html = html.replace(/`([^`\n]+?)`/g, (match, code) => {
-                const placeholder = '@@CODE_BLOCK_' + codePlaceholders.length + '@@';
+                const placeholder = '@@CODEPH' + codePlaceholders.length + '@@';
                 const escaped = code
                     .replace(/&/g, '&amp;')
                     .replace(/</g, '&lt;')
@@ -1058,7 +1058,7 @@
             html = spaceParts.join('');
 
             // Restore inline code placeholders
-            html = html.replace(/@@CODE_BLOCK_(\d+)@@/g, (match, index) => {
+            html = html.replace(/@@CODEPH(\d+)@@/g, (match, index) => {
                 const code = codePlaceholders[Number(index)];
                 return typeof code === 'string' ? '<code>' + code + '</code>' : match;
             });
