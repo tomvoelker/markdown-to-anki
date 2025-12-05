@@ -861,6 +861,18 @@
             if (!markdown.trim()) return '';
 
             let html = markdown;
+            const codePlaceholders = [];
+
+            // STEP 0: Protect inline code spans so math/emphasis don't alter them
+            html = html.replace(/`([^`\n]+?)`/g, (match, code) => {
+                const placeholder = '@@CODE_BLOCK_' + codePlaceholders.length + '@@';
+                const escaped = code
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+                codePlaceholders.push(escaped);
+                return placeholder;
+            });
 
             // STEP 0: Clean up citations
             html = html.replace(/\[cite_start\]/g, '');
@@ -1044,6 +1056,12 @@
                 }
             }
             html = spaceParts.join('');
+
+            // Restore inline code placeholders
+            html = html.replace(/@@CODE_BLOCK_(\d+)@@/g, (match, index) => {
+                const code = codePlaceholders[Number(index)];
+                return typeof code === 'string' ? '<code>' + code + '</code>' : match;
+            });
 
             return html;
         }
