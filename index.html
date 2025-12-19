@@ -513,6 +513,44 @@
             transition: border-color 0.3s, background-color 0.3s, color 0.3s;
         }
 
+        /* Inline highlighting overlay for batch input */
+        .batch-highlights {
+            position: absolute;
+            inset: 0;
+            padding: 15px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: transparent;
+            pointer-events: none;
+            user-select: none;
+            overflow: hidden;
+            border-radius: 12px;
+            z-index: 0;
+        }
+
+        #batchInput {
+            position: relative;
+            z-index: 1;
+            background: transparent;
+            color: var(--text-primary);
+            caret-color: var(--text-primary);
+        }
+
+        .hl-question {
+            background: rgba(0, 102, 204, 0.12);
+        }
+
+        .hl-answer {
+            background: rgba(40, 167, 69, 0.12);
+        }
+
+        .hl-error {
+            background: rgba(220, 53, 69, 0.12);
+        }
+
         .batch-input:focus {
             outline: none;
             border-color: var(--accent-color);
@@ -523,6 +561,35 @@
             grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
             gap: 20px;
             margin-top: 20px;
+        }
+
+        .block-pill {
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .block-pill:hover {
+            background: var(--bg-primary);
+            border-color: var(--accent-color);
+            color: var(--text-primary);
+        }
+
+        .block-pill-ok {
+            border-color: #28a74533;
+            color: #1d7a34;
+            background: #e8f8ed;
+        }
+
+        .block-pill-error {
+            border-color: #dc354533;
+            color: #a71d2a;
+            background: #fbeaea;
         }
 
         .card-item {
@@ -793,6 +860,7 @@
                 <div class="input-wrapper">
                     <button class="paste-sample-btn" id="batchSampleBtn" onclick="pasteSampleBatch()">Paste
                         Sample</button>
+                    <div id="batchHighlights" class="batch-highlights" aria-hidden="true"></div>
                     <textarea id="batchInput" class="batch-input"
                         placeholder="Paste your batch of Q&A pairs here...&#10;&#10;Format:&#10;```&#10;Question&#10;```&#10;&#10;```&#10;Answer&#10;```&#10;&#10;-----&#10;&#10;Separate cards with ----- (5 dashes)"></textarea>
                 </div>
@@ -1239,6 +1307,7 @@ The formula is:
         const batchInput = document.getElementById('batchInput');
         const batchOutput = document.getElementById('batchOutput');
         const batchStats = document.getElementById('batchStats');
+        const batchHighlights = document.getElementById('batchHighlights');
         let batchDebounceTimer;
 
         function switchTab(tabName) {
@@ -1255,15 +1324,35 @@ The formula is:
             document.getElementById(tabName + '-tab').classList.add('active');
         }
 
+        function splitSections(text) {
+            const sections = [];
+            const sepRegex = /\n\s*-{3,}\s*\n/g;
+            let lastIndex = 0;
+            let match;
+            while ((match = sepRegex.exec(text)) !== null) {
+                const sectionText = text.slice(lastIndex, match.index);
+                const startLine = text.slice(0, lastIndex).split('\n').length;
+                sections.push({ text: sectionText, startLine, startIndex: lastIndex });
+                lastIndex = match.index + match[0].length;
+            }
+            const finalSection = text.slice(lastIndex);
+            const finalStartLine = text.slice(0, lastIndex).split('\n').length;
+            sections.push({ text: finalSection, startLine: finalStartLine, startIndex: lastIndex });
+
+            return sections;
+        }
+
         function parseBatchInput(text) {
             const cards = [];
-            const sections = text.split(/\n\s*-----\s*\n/);
+
+            // Split while keeping line numbers to highlight problem blocks
+            const sections = splitSections(text);
 
             sections.forEach((section, index) => {
                 try {
                     // Extract code blocks (question and answer)
                     const codeBlockRegex = /```[ \t]*([a-zA-Z0-9_-]+)?[ \t]*\n?([\s\S]*?)```/g;
-                    const matches = [...section.matchAll(codeBlockRegex)];
+                    const matches = [...section.text.matchAll(codeBlockRegex)];
 
                     if (matches.length >= 2) {
                         const question = matches[0][2] ?? '';
@@ -1274,18 +1363,28 @@ The formula is:
                                 index: cards.length + 1,
                                 question: question,
                                 answer: answer,
-                                error: null
+                                error: null,
+                                startLine: section.startLine
                             });
                         }
-                    } else if (section.trim()) {
+                    } else if (section.text.trim()) {
                         // Fallback: try to split by double newline if no code blocks
-                        const parts = section.trim().split(/\n\s*\n/);
+                        const parts = section.text.trim().split(/\n\s*\n/);
                         if (parts.length >= 2) {
                             cards.push({
                                 index: cards.length + 1,
                                 question: parts[0].trim(),
                                 answer: parts.slice(1).join('\n\n').trim(),
-                                error: null
+                                error: null,
+                                startLine: section.startLine
+                            });
+                        } else {
+                            cards.push({
+                                index: cards.length + 1,
+                                question: '',
+                                answer: '',
+                                error: 'Could not find question/answer blocks. Use ```...``` and --- separators.',
+                                startLine: section.startLine
                             });
                         }
                     }
@@ -1294,7 +1393,8 @@ The formula is:
                         index: cards.length + 1,
                         question: '',
                         answer: '',
-                        error: 'Failed to parse card: ' + err.message
+                        error: 'Failed to parse card: ' + err.message,
+                        startLine: section.startLine
                     });
                 }
             });
@@ -1320,6 +1420,10 @@ The formula is:
                         <div class="card-item error-card">
                             <div class="card-header">
                                 <span class="card-number">Card ${card.index}</span>
+                                <button class="block-pill block-pill-error" title="Jump to input"
+                                    onclick="jumpToLine(${card.startLine || 1})">
+                                    ⚠️ Block ${card.index} · line ${card.startLine || 'n/a'}
+                                </button>
                             </div>
                             <div class="error-message">${card.error}</div>
                         </div>
@@ -1339,6 +1443,10 @@ The formula is:
                     <div class="card-item" id="card-${card.index}">
                         <div class="card-header">
                             <span class="card-number">Card ${card.index}</span>
+                            <button class="block-pill block-pill-ok" title="Jump to input"
+                                onclick="jumpToLine(${card.startLine || 1})">
+                                ✅ Block ${card.index} · line ${card.startLine || 'n/a'}
+                            </button>
                             <button class="copy-card-btn" onclick="copyCard(${card.index}, '${escapeHtml(questionHtml)}', '${escapeHtml(answerHtml)}')">
                                 📋 Copy Both
                             </button>
@@ -1375,6 +1483,8 @@ The formula is:
                 MathJax.typesetClear([...previews]);
                 MathJax.typesetPromise([...previews]).catch((err) => console.log('MathJax error:', err));
             }
+
+            renderBatchBlockMarkers(cards);
         }
 
         function escapeHtml(text) {
@@ -1440,8 +1550,85 @@ The formula is:
             }
         }
 
+        function updateBatchHighlights(text) {
+            if (!batchHighlights) return;
+            if (!text) {
+                batchHighlights.innerHTML = '';
+                batchHighlights.scrollTop = 0;
+                return;
+            }
+
+            const esc = (str) => str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            const sections = splitSections(text);
+            const ranges = [];
+
+            sections.forEach(sec => {
+                const codeBlockRegex = /```[ \t]*([a-zA-Z0-9_-]+)?[ \t]*\n?([\s\S]*?)```/g;
+                const matches = [...sec.text.matchAll(codeBlockRegex)];
+
+                if (matches.length >= 2) {
+                    const qMatch = matches[0];
+                    const aMatch = matches[1];
+                    ranges.push({
+                        start: sec.startIndex + qMatch.index,
+                        end: sec.startIndex + qMatch.index + qMatch[0].length,
+                        cls: 'hl-question'
+                    });
+                    ranges.push({
+                        start: sec.startIndex + aMatch.index,
+                        end: sec.startIndex + aMatch.index + aMatch[0].length,
+                        cls: 'hl-answer'
+                    });
+                } else if (sec.text.trim()) {
+                    ranges.push({
+                        start: sec.startIndex,
+                        end: sec.startIndex + sec.text.length,
+                        cls: 'hl-error'
+                    });
+                }
+            });
+
+            ranges.sort((a, b) => a.start - b.start);
+
+            let html = '';
+            let cursor = 0;
+            ranges.forEach(range => {
+                if (range.start > cursor) {
+                    html += esc(text.slice(cursor, range.start));
+                }
+                html += `<span class="${range.cls}">${esc(text.slice(range.start, range.end))}</span>`;
+                cursor = range.end;
+            });
+
+            if (cursor < text.length) {
+                html += esc(text.slice(cursor));
+            }
+
+            batchHighlights.innerHTML = html;
+            batchHighlights.scrollTop = batchInput.scrollTop;
+        }
+
+        function jumpToLine(lineNumber) {
+            if (!batchInput || !lineNumber) return;
+            const lines = batchInput.value.split('\n');
+            let charIndex = 0;
+            for (let i = 0; i < Math.max(0, lineNumber - 1); i++) {
+                charIndex += (lines[i] ? lines[i].length : 0) + 1; // +1 for newline
+            }
+            batchInput.focus();
+            batchInput.setSelectionRange(charIndex, charIndex);
+            // Scroll into view
+            const lineHeight = parseFloat(getComputedStyle(batchInput).lineHeight) || 22;
+            batchInput.scrollTop = Math.max(0, (lineNumber - 1) * lineHeight - batchInput.clientHeight / 2);
+        }
+
         batchInput.addEventListener('input', () => {
             clearTimeout(batchDebounceTimer);
+            updateBatchHighlights(batchInput.value);
 
             // Hide sample button on first input
             const sampleBtn = document.getElementById('batchSampleBtn');
@@ -1454,11 +1641,18 @@ The formula is:
                 if (text.trim()) {
                     const cards = parseBatchInput(text);
                     renderBatchCards(cards);
+                    updateBatchHighlights(text);
                 } else {
                     batchOutput.innerHTML = '';
                     batchStats.style.display = 'none';
+                    updateBatchHighlights('');
                 }
             }, 500);
+        });
+
+        batchInput.addEventListener('scroll', () => {
+            if (!batchHighlights) return;
+            batchHighlights.scrollTop = batchInput.scrollTop;
         });
 
         // ============= KEYBOARD SHORTCUTS =============
