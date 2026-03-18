@@ -175,6 +175,104 @@
             transform: rotate(180deg);
         }
 
+        .prompt-box {
+            margin-top: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            text-align: left;
+        }
+
+        .prompt-box-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            cursor: pointer;
+            user-select: none;
+            gap: 10px;
+        }
+
+        .prompt-box-header:hover {
+            background: var(--bg-secondary);
+        }
+
+        .prompt-box-header h3 {
+            margin: 0;
+            font-size: 0.95em;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .prompt-box-header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .prompt-toggle {
+            font-size: 0.75em;
+            color: var(--text-tertiary);
+            transition: transform 0.2s ease;
+            display: inline-block;
+        }
+
+        .prompt-toggle.open {
+            transform: rotate(180deg);
+        }
+
+        .prompt-content {
+            display: none;
+            padding: 0 16px 14px;
+        }
+
+        .prompt-content.open {
+            display: block;
+        }
+
+        .prompt-text {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.82em;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 14px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin: 0 0 10px 0;
+        }
+
+        .copy-prompt-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 7px;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease, transform 0.1s ease;
+        }
+
+        .copy-prompt-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .copy-prompt-btn:active {
+            transform: scale(0.97);
+        }
+
+        .copy-prompt-btn.copied {
+            background: #2e7d32;
+        }
+
         .description-content {
             max-height: 0;
             overflow: hidden;
@@ -804,6 +902,53 @@
                 </div>
             </div>
 
+            <div class="prompt-box">
+                <div class="prompt-box-header" onclick="togglePrompt()">
+                    <h3>🤖 AI Prompt Addendum</h3>
+                    <div class="prompt-box-header-right">
+                        <span style="font-size:0.8em; color: var(--text-tertiary); font-weight: 400;">Add this to your AI prompt to get paste-ready output</span>
+                        <span class="prompt-toggle" id="promptToggle">▼</span>
+                    </div>
+                </div>
+                <div class="prompt-content" id="promptContent">
+                    <pre class="prompt-text" id="promptText">Format your response as Anki flashcard(s) using the following rules:
+
+- Use **double asterisks** for bold and *single asterisks* for italic.
+- For inline math, write \(expression\) — e.g. \(x^2 + y^2 = r^2\)
+- For block/display math, write \[expression\] on its own line.
+- For lists, use - (bullet) or 1. 2. 3. (numbered) in standard Markdown.
+- Do NOT output raw HTML, <anki-mathjax>, or any other markup.
+- Do NOT use $ or $$ for math — only \( \) and \[ \].
+
+For a single card, output:
+Question text here
+
+Answer text here
+
+For multiple cards (batch mode), wrap each question and answer in triple backticks and separate cards with five dashes:
+```
+Question text here
+```
+
+```
+Answer text here
+```
+
+-----
+
+```
+Next question here
+```
+
+```
+Next answer here
+```</pre>
+                    <button class="copy-prompt-btn" id="copyPromptBtn" onclick="copyPrompt()">
+                        📋 Copy Prompt
+                    </button>
+                </div>
+            </div>
+
         </div>
 
         <div class="tabs">
@@ -1254,6 +1399,31 @@
 
         // ============= DESCRIPTION & PASTE SAMPLE =============
 
+        function togglePrompt() {
+            const content = document.getElementById('promptContent');
+            const toggle = document.getElementById('promptToggle');
+            content.classList.toggle('open');
+            toggle.classList.toggle('open');
+        }
+
+        async function copyPrompt() {
+            const text = document.getElementById('promptText').innerText;
+            const btn = document.getElementById('copyPromptBtn');
+            const original = btn.innerHTML;
+            try {
+                await writeToClipboard(text);
+                btn.innerHTML = '✓ Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.innerHTML = original;
+                    btn.classList.remove('copied');
+                }, 2000);
+            } catch (e) {
+                btn.innerHTML = '✗ Failed';
+                setTimeout(() => { btn.innerHTML = original; }, 2000);
+            }
+        }
+
         function toggleDescription() {
             const content = document.getElementById('descContent');
             const toggle = document.getElementById('descToggle');
@@ -1451,22 +1621,22 @@ The formula is:
                                 📋 Copy Both
                             </button>
                         </div>
-                        
+
                         <div class="card-section">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                 <span class="card-section-title">Question</span>
-                                <button class="copy-card-btn" style="font-size: 0.75em; padding: 4px 10px;" 
+                                <button class="copy-card-btn" style="font-size: 0.75em; padding: 4px 10px;"
                                         onclick="copyCardPart(${card.index}, 'question', '${escapeHtml(questionHtml)}')">
                                     Copy
                                 </button>
                             </div>
                             <div class="card-preview card-preview-${card.index}-q">${questionPreview}</div>
                         </div>
-                        
+
                         <div class="card-section">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                 <span class="card-section-title">Answer</span>
-                                <button class="copy-card-btn" style="font-size: 0.75em; padding: 4px 10px;" 
+                                <button class="copy-card-btn" style="font-size: 0.75em; padding: 4px 10px;"
                                         onclick="copyCardPart(${card.index}, 'answer', '${escapeHtml(answerHtml)}')">
                                     Copy
                                 </button>
@@ -1495,13 +1665,42 @@ The formula is:
                 .replace(/\n/g, '\\n');
         }
 
+        async function writeToClipboard(text) {
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                return navigator.clipboard.writeText(text);
+            }
+
+            // Fallback for browsers/environments without navigator.clipboard
+            return new Promise((resolve, reject) => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.setAttribute('readonly', '');
+                textarea.style.position = 'fixed';
+                textarea.style.left = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+
+                try {
+                    const successful = document.execCommand('copy');
+                    if (!successful) {
+                        throw new Error('Fallback copy command was unsuccessful');
+                    }
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                } finally {
+                    document.body.removeChild(textarea);
+                }
+            });
+        }
+
         async function copyCard(index, questionHtml, answerHtml) {
             const text = `Question: ${questionHtml}\n\nAnswer: ${answerHtml}`;
             const btn = event.target;
             const originalText = btn.textContent;
 
             try {
-                await navigator.clipboard.writeText(text);
+                await writeToClipboard(text);
                 btn.textContent = '✓ Copied!';
                 btn.classList.remove('error');
                 btn.classList.add('copied');
@@ -1528,7 +1727,7 @@ The formula is:
             const originalText = btn.textContent;
 
             try {
-                await navigator.clipboard.writeText(html);
+                await writeToClipboard(html);
                 btn.textContent = '✓';
                 btn.classList.remove('error');
                 btn.classList.add('copied');
