@@ -4,25 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Markdown to Anki HTML Converter</title>
+    <title>Markdown to Anki</title>
     <meta name="description"
-        content="Convert markdown with LaTeX math to Anki's HTML format. Supports single cards and batch processing.">
+        content="Convert markdown and LaTeX into paste-ready Anki HTML. Supports single cards, batch mode, and live preview.">
+    <link rel="canonical" href="https://tomvoelker.de/markdown-to-anki/">
 
     <!-- Open Graph / Social Media -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://tomvoelker.github.io/markdown-to-anki/">
-    <meta property="og:title" content="Markdown to Anki HTML Converter">
+    <meta property="og:url" content="https://tomvoelker.de/markdown-to-anki/">
+    <meta property="og:title" content="Markdown to Anki">
     <meta property="og:description"
-        content="Simple tool to convert markdown with LaTeX to Anki HTML. Vibecoded for personal use.">
-    <meta property="og:image" content="https://tomvoelker.github.io/markdown-to-anki/preview.png">
+        content="Convert markdown and LaTeX into paste-ready Anki HTML. Single card and batch modes included.">
 
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://tomvoelker.github.io/markdown-to-anki/">
-    <meta property="twitter:title" content="Markdown to Anki HTML Converter">
+    <meta property="twitter:card" content="summary">
+    <meta property="twitter:url" content="https://tomvoelker.de/markdown-to-anki/">
+    <meta property="twitter:title" content="Markdown to Anki">
     <meta property="twitter:description"
-        content="Simple tool to convert markdown with LaTeX to Anki HTML. Vibecoded for personal use.">
-    <meta property="twitter:image" content="https://tomvoelker.github.io/markdown-to-anki/preview.png">
+        content="Convert markdown and LaTeX into paste-ready Anki HTML. Single card and batch modes included.">
 
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📝</text></svg>">
@@ -39,170 +38,257 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
     <style>
+        @font-face {
+            font-family: 'JetBrains Mono';
+            src: url('https://tomvoelker.de/fonts/JetBrainsMono-Regular.woff2') format('woff2');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'JetBrains Mono';
+            src: url('https://tomvoelker.de/fonts/JetBrainsMono-Medium.woff2') format('woff2');
+            font-weight: 500;
+            font-style: normal;
+            font-display: swap;
+        }
+
         :root {
-            --bg-primary: #f5f7fa;
-            --bg-secondary: #ffffff;
-            --bg-tertiary: #f8f9fa;
-            --text-primary: #1a1a1a;
-            --text-secondary: #495057;
-            --text-tertiary: #6c757d;
-            --border-color: #e0e0e0;
-            --border-subtle: #e8ecef;
-            --accent-color: #0066cc;
-            --accent-hover: #0052a3;
-            --shadow: rgba(0, 0, 0, 0.08);
+            --bg: #fafaf9;
+            --panel: #f5f5f4;
+            --panel-strong: #efeeea;
+            --text: #1c1917;
+            --muted: #78716c;
+            --accent: #0369a1;
+            --accent-soft: rgba(3, 105, 161, 0.12);
+            --border: #e7e5e4;
+            --success: #166534;
+            --success-bg: rgba(34, 197, 94, 0.08);
+            --success-border: rgba(22, 101, 52, 0.2);
+            --danger: #b91c1c;
+            --danger-bg: rgba(220, 38, 38, 0.08);
+            --danger-border: rgba(185, 28, 28, 0.2);
+            --workspace-columns: minmax(0, 1fr) minmax(0, 1fr);
         }
 
         [data-theme="dark"] {
-            --bg-primary: #1a1a1a;
-            --bg-secondary: #2d2d2d;
-            --bg-tertiary: #242424;
-            --text-primary: #e8e8e8;
-            --text-secondary: #b8b8b8;
-            --text-tertiary: #888;
-            --border-color: #404040;
-            --border-subtle: #333;
-            --accent-color: #4a9eff;
-            --accent-hover: #6db0ff;
-            --shadow: rgba(0, 0, 0, 0.3);
+            --bg: #171717;
+            --panel: #1f1f1f;
+            --panel-strong: #27272a;
+            --text: #fafafa;
+            --muted: #a1a1aa;
+            --accent: #38bdf8;
+            --accent-soft: rgba(56, 189, 248, 0.12);
+            --border: #3f3f46;
+            --success: #86efac;
+            --success-bg: rgba(34, 197, 94, 0.12);
+            --success-border: rgba(134, 239, 172, 0.24);
+            --danger: #fca5a5;
+            --danger-bg: rgba(248, 113, 113, 0.12);
+            --danger-border: rgba(252, 165, 165, 0.24);
         }
 
         * {
-            margin: 0;
-            padding: 0;
             box-sizing: border-box;
         }
 
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            margin: 0;
             min-height: 100vh;
-            padding: 20px;
-            transition: background-color 0.3s, color 0.3s;
+            padding: 0;
+            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 14px;
+            line-height: 1.7;
+            background: var(--bg);
+            color: var(--text);
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        button,
+        textarea {
+            font: inherit;
         }
 
         .container {
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            box-shadow: 0 2px 8px var(--shadow);
-            width: 100%;
-            max-width: 1400px;
+            width: min(1180px, calc(100% - 48px));
             margin: 0 auto;
-            padding: 40px;
+            padding: 72px 0 88px;
         }
 
         .header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding-bottom: 30px;
-            border-bottom: 2px solid var(--border-subtle);
             position: relative;
+            margin-bottom: 28px;
+            padding-bottom: 28px;
+            border-bottom: 1px solid var(--border);
         }
 
-        .dark-mode-toggle {
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .header-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.02fr) minmax(320px, 0.98fr);
+            gap: 24px 28px;
+            align-items: start;
+        }
+
+        .header-copy,
+        .header-tools {
+            min-width: 0;
+        }
+
+        .header-tools {
+            display: grid;
+            gap: 12px;
+        }
+
+        .meta-links,
+        .intro-links,
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .meta-links>*+*,
+        .intro-links>*+*,
+        .footer-links>*+* {
+            position: relative;
+            padding-left: 12px;
+        }
+
+        .meta-links>*+*::before,
+        .intro-links>*+*::before,
+        .footer-links>*+*::before {
+            content: '·';
             position: absolute;
-            top: 0;
-            right: 0;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 8px 16px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: all 0.3s;
-            color: var(--text-secondary);
+            left: 0;
+            color: var(--muted);
         }
 
-        .dark-mode-toggle:hover {
-            background: var(--bg-primary);
+        .meta-links a,
+        .footer a {
+            color: var(--muted);
+            text-decoration: none;
+        }
+
+        .meta-links a:hover,
+        .footer a:hover {
+            color: var(--accent);
+        }
+
+        .home-link {
+            color: var(--text) !important;
+            font-weight: 500;
+        }
+
+        .dark-mode-toggle,
+        .copy-prompt-btn,
+        .paste-sample-btn,
+        .clear-btn,
+        .block-pill,
+        .copy-card-btn {
+            appearance: none;
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            border-radius: 4px;
+            padding: 6px 10px;
+            cursor: pointer;
+            transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+        }
+
+        .dark-mode-toggle:hover,
+        .copy-prompt-btn:hover,
+        .paste-sample-btn:hover,
+        .clear-btn:hover,
+        .block-pill:hover,
+        .copy-card-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--panel-strong);
             transform: translateY(-1px);
         }
 
+        .dark-mode-toggle:active,
+        .copy-prompt-btn:active,
+        .paste-sample-btn:active,
+        .clear-btn:active,
+        .block-pill:active,
+        .copy-card-btn:active {
+            transform: translateY(0);
+        }
+
         h1 {
-            color: var(--text-primary);
-            margin-bottom: 12px;
-            font-size: 2.2em;
-            font-weight: 700;
+            margin: 0 0 10px;
+            font-size: clamp(22px, 3.2vw, 30px);
+            line-height: 1.15;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+        }
+
+        .tagline {
+            margin: 0 0 10px;
+            color: var(--muted);
+            font-size: 13px;
+            font-style: italic;
         }
 
         .subtitle {
-            color: var(--text-secondary);
-            font-size: 1.05em;
-            line-height: 1.6;
-            max-width: 800px;
-            margin: 0 auto 20px;
+            margin: 0 0 14px;
+            color: var(--muted);
+            font-size: 13px;
         }
 
-        .description {
-            background: var(--bg-tertiary);
-            padding: 0;
-            border-radius: 8px;
-            margin-top: 20px;
-            text-align: left;
-            max-width: 900px;
-            margin: 20px auto 0;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-        }
-
-        .description-header {
-            padding: 15px 20px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background 0.3s;
-        }
-
-        .description-header:hover {
-            background: var(--bg-primary);
-        }
-
-        .description-header h3 {
-            color: var(--text-primary);
-            font-size: 1.1em;
-            margin: 0;
-        }
-
-        .description-toggle {
-            color: var(--accent-color);
-            font-size: 1.2em;
-            transition: transform 0.3s;
-        }
-
-        .description-toggle.open {
-            transform: rotate(180deg);
-        }
-
+        .description,
         .prompt-box {
-            margin-top: 12px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
             overflow: hidden;
-            text-align: left;
         }
 
+        .description-header,
         .prompt-box-header {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            padding: 10px 16px;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 12px 14px;
             cursor: pointer;
-            user-select: none;
-            gap: 10px;
         }
 
+        .description-header:hover,
         .prompt-box-header:hover {
-            background: var(--bg-secondary);
+            background: var(--panel-strong);
         }
 
+        .description-header h3,
         .prompt-box-header h3 {
             margin: 0;
-            font-size: 0.95em;
-            font-weight: 600;
-            color: var(--text-primary);
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
         }
 
         .prompt-box-header-right {
@@ -212,20 +298,58 @@
             flex-shrink: 0;
         }
 
-        .prompt-toggle {
-            font-size: 0.75em;
-            color: var(--text-tertiary);
-            transition: transform 0.2s ease;
-            display: inline-block;
+        .prompt-helper {
+            max-width: 18rem;
+            color: var(--muted);
+            font-size: 11px;
+            text-align: right;
         }
 
+        .description-toggle,
+        .prompt-toggle {
+            display: inline-block;
+            color: var(--muted);
+            font-size: 11px;
+            transition: transform 0.15s ease;
+        }
+
+        .description-toggle.open,
         .prompt-toggle.open {
             transform: rotate(180deg);
         }
 
+        .description-content {
+            max-height: 0;
+            overflow: hidden;
+            padding: 0 14px;
+            transition: max-height 0.2s ease;
+        }
+
+        .description-content.open {
+            max-height: 800px;
+            padding: 0 14px 14px;
+        }
+
+        .description ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .description li {
+            padding: 4px 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .description li::before {
+            content: '+ ';
+            color: var(--accent);
+        }
+
         .prompt-content {
             display: none;
-            padding: 0 16px 14px;
+            padding: 0 14px 14px;
         }
 
         .prompt-content.open {
@@ -233,136 +357,68 @@
         }
 
         .prompt-text {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.82em;
-            line-height: 1.6;
-            color: var(--text-secondary);
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px 14px;
+            margin: 0 0 12px;
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--muted);
+            font-family: inherit;
+            font-size: 12px;
+            line-height: 1.7;
             white-space: pre-wrap;
             word-break: break-word;
-            margin: 0 0 10px 0;
         }
 
-        .copy-prompt-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 7px 16px;
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 7px;
-            font-size: 0.85em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.15s ease, transform 0.1s ease;
+        .copy-prompt-btn.copied,
+        .copy-card-btn.copied {
+            color: var(--success);
+            border-color: var(--success-border);
+            background: var(--success-bg);
         }
 
-        .copy-prompt-btn:hover {
-            background: var(--accent-hover);
-        }
-
-        .copy-prompt-btn:active {
-            transform: scale(0.97);
-        }
-
-        .copy-prompt-btn.copied {
-            background: #2e7d32;
-        }
-
-        .description-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-            padding: 0 20px;
-        }
-
-        .description-content.open {
-            max-height: 1000px;
-            padding: 0 20px 20px;
-        }
-
-        .description ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        .description li {
-            padding: 6px 0;
-            color: var(--text-secondary);
-            line-height: 1.5;
-        }
-
-        .description li::before {
-            content: "✓ ";
-            color: #28a745;
-            font-weight: bold;
-            margin-right: 8px;
-        }
-
-        .input-wrapper {
-            position: relative;
-        }
-
-        .paste-sample-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 6px 12px;
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.85em;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
-            z-index: 10;
-            box-shadow: 0 2px 4px rgba(0, 102, 204, 0.2);
-        }
-
-        .paste-sample-btn:hover {
-            background: var(--accent-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 102, 204, 0.3);
-        }
-
-        .paste-sample-btn.hidden {
-            opacity: 0;
-            pointer-events: none;
+        .copy-card-btn.error {
+            color: var(--danger);
+            border-color: var(--danger-border);
+            background: var(--danger-bg);
         }
 
         .tabs {
             display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 18px;
+            margin: 0 0 24px;
+            border-bottom: 1px solid var(--border);
         }
 
         .tab-button {
-            padding: 12px 30px;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 600;
+            position: relative;
+            padding: 0 0 12px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font: inherit;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
             cursor: pointer;
-            transition: all 0.3s;
-            color: var(--text-secondary);
         }
 
         .tab-button:hover {
-            background: var(--bg-tertiary);
-            border-color: var(--accent-color);
+            color: var(--accent);
         }
 
         .tab-button.active {
-            background: var(--accent-color);
-            color: white;
-            border-color: var(--accent-color);
+            color: var(--text);
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -1px;
+            height: 1px;
+            background: var(--accent);
         }
 
         .tab-content {
@@ -375,38 +431,48 @@
 
         .converter-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
+            grid-template-columns: var(--workspace-columns);
+            gap: 24px;
+            align-items: stretch;
+            margin-bottom: 18px;
+        }
+
+        .converter-stack {
+            min-width: 0;
+            display: grid;
+            gap: 24px;
         }
 
         .panel {
+            min-width: 0;
             display: flex;
             flex-direction: column;
+        }
+
+        .panel-fill {
+            height: 100%;
         }
 
         .panel-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            gap: 12px;
+            margin-bottom: 8px;
         }
 
         .panel-title {
-            font-weight: 600;
-            color: var(--text-primary);
-            font-size: 1.1em;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
         }
 
         .status {
-            font-size: 0.85em;
-            padding: 4px 12px;
-            border-radius: 12px;
-            background: #e7f3ff;
-            color: #0066cc;
-            font-weight: 500;
+            color: var(--muted);
+            font-size: 11px;
             opacity: 0;
-            transition: opacity 0.3s;
+            transition: opacity 0.15s ease, color 0.15s ease;
         }
 
         .status.show {
@@ -414,218 +480,194 @@
         }
 
         .status.copied {
-            background: #d4edda;
-            color: #28a745;
+            color: var(--success);
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .panel-fill>.input-wrapper {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+        }
+
+        textarea,
+        .preview-box,
+        .batch-input,
+        .card-preview {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--panel);
+            color: var(--text);
         }
 
         textarea {
-            width: 100%;
-            min-height: 400px;
-            padding: 15px;
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 14px;
+            min-height: 18rem;
+            padding: 18px;
             resize: vertical;
-            transition: border-color 0.3s, background-color 0.3s, color 0.3s;
-            line-height: 1.6;
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
+            line-height: 1.7;
+            transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
         }
 
-        textarea:focus {
+        #input,
+        #batchInput {
+            padding-top: 52px;
+        }
+
+        .panel-fill textarea {
+            flex: 1;
+            min-height: 100%;
+        }
+
+        textarea:focus,
+        .batch-input:focus {
             outline: none;
-            border-color: var(--accent-color);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
         }
 
-        textarea::placeholder {
-            color: var(--text-tertiary);
-            opacity: 0.7;
+        textarea::placeholder,
+        .preview-box:empty::before {
+            color: var(--muted);
         }
 
         #input {
-            background: var(--bg-tertiary);
+            min-height: 34rem;
         }
 
         #output {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
+            min-height: 16rem;
+            color: var(--muted);
+            background: var(--panel-strong);
         }
 
         .preview-box {
-            width: 100%;
-            min-height: 400px;
-            padding: 20px;
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            overflow-y: auto;
-            line-height: 1.6;
-            font-size: 16px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            min-height: 16rem;
+            padding: 18px;
+            overflow: auto;
+            background: var(--panel-strong);
         }
 
         .preview-box:empty::before {
-            content: 'Live preview will appear here...';
-            color: var(--text-tertiary);
-            font-style: italic;
+            content: 'preview appears here';
         }
 
-        .preview-box b {
-            font-weight: 600;
+        .preview-box b,
+        .card-preview b {
+            font-weight: 500;
         }
 
         .preview-box ul,
-        .preview-box ol {
+        .preview-box ol,
+        .card-preview ul,
+        .card-preview ol {
             margin: 10px 0;
-            padding-left: 25px;
+            padding-left: 22px;
         }
 
-        .preview-box li {
-            margin: 8px 0;
+        .preview-box li,
+        .card-preview li {
+            margin: 6px 0;
         }
 
-        .info-box {
-            background: var(--bg-tertiary);
-            border-left: 4px solid var(--accent-color);
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 0.9em;
-            color: var(--text-secondary);
-            line-height: 1.6;
+        .preview-box code,
+        .card-preview code {
+            padding: 1px 4px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
         }
 
-        .info-box strong {
-            color: var(--accent-color);
+        .paste-sample-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 2;
+            font-size: 11px;
+        }
+
+        .paste-sample-btn.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .single-actions {
+            display: grid;
+            grid-template-columns: var(--workspace-columns);
+            gap: 24px;
+            align-items: start;
+            padding-top: 4px;
         }
 
         .clear-btn {
-            display: block;
-            margin: 20px auto 0;
-            padding: 12px 30px;
-            background: #6c757d;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+            font-size: 12px;
+            justify-self: start;
         }
 
-        .clear-btn:hover {
-            background: #5a6268;
-            transform: translateY(-2px);
+        .info-box {
+            grid-column: 2;
+            max-width: none;
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
         }
 
-        .clear-btn:active {
-            transform: translateY(0);
-        }
-
-        @media (max-width: 1200px) {
-
-            .converter-grid,
-            .batch-output {
-                grid-template-columns: 1fr;
-            }
-
-            .container {
-                padding: 25px;
-            }
-
-            h1 {
-                font-size: 1.5em;
-            }
-
-            textarea,
-            .preview-box,
-            .batch-input {
-                min-height: 300px;
-            }
-
-            .tabs {
-                flex-direction: column;
-            }
-
-            .tab-button {
-                width: 100%;
-            }
+        .info-box strong {
+            color: var(--text);
+            font-weight: 500;
         }
 
         .copy-indicator {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #2e7d32;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            font-weight: 600;
+            right: 24px;
+            bottom: 24px;
+            padding: 10px 14px;
+            border: 1px solid var(--success-border);
+            border-radius: 6px;
+            background: var(--panel-strong);
+            color: var(--success);
+            font-size: 12px;
             opacity: 0;
-            transform: translateY(-20px) scale(0.8);
-            transition: all 0.3s ease;
+            transform: translateY(10px);
+            transition: opacity 0.15s ease, transform 0.15s ease, color 0.15s ease, border-color 0.15s ease;
             pointer-events: none;
             z-index: 1000;
         }
 
         .copy-indicator.show {
             opacity: 1;
-            transform: translateY(0) scale(1);
-            animation: popIn 0.3s ease;
+            transform: translateY(0);
         }
 
-        @keyframes popIn {
-            0% {
-                transform: translateY(-20px) scale(0.8);
-            }
-
-            50% {
-                transform: translateY(5px) scale(1.05);
-            }
-
-            100% {
-                transform: translateY(0) scale(1);
-            }
+        .copy-indicator.error {
+            color: var(--danger);
+            border-color: var(--danger-border);
         }
 
-        /* Batch Mode Styles */
         .batch-input-section {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .batch-input {
-            width: 100%;
-            min-height: 400px;
-            padding: 15px;
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 14px;
-            resize: vertical;
-            line-height: 1.6;
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-            transition: border-color 0.3s, background-color 0.3s, color 0.3s;
+            min-height: 28rem;
         }
 
-        /* Inline highlighting overlay for batch input */
         .batch-highlights {
             position: absolute;
             inset: 0;
-            padding: 15px;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 14px;
-            line-height: 1.6;
+            padding: 52px 18px 18px;
+            font: inherit;
+            line-height: 1.7;
             white-space: pre-wrap;
             word-break: break-word;
             color: transparent;
             pointer-events: none;
             user-select: none;
             overflow: hidden;
-            border-radius: 12px;
+            border-radius: 6px;
             z-index: 0;
         }
 
@@ -633,285 +675,314 @@
             position: relative;
             z-index: 1;
             background: transparent;
-            color: var(--text-primary);
-            caret-color: var(--text-primary);
+            color: var(--text);
+            caret-color: var(--text);
         }
 
         .hl-question {
-            background: rgba(0, 102, 204, 0.12);
+            background: var(--accent-soft);
         }
 
         .hl-answer {
-            background: rgba(40, 167, 69, 0.12);
+            background: var(--success-bg);
         }
 
         .hl-error {
-            background: rgba(220, 53, 69, 0.12);
+            background: var(--danger-bg);
         }
 
-        .batch-input:focus {
-            outline: none;
-            border-color: var(--accent-color);
+        .batch-stats {
+            display: none;
+            margin-bottom: 18px;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--panel);
+            color: var(--muted);
+            font-size: 12px;
         }
 
         .batch-output {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .block-pill {
-            border: 1px solid var(--border-color);
-            background: var(--bg-tertiary);
-            color: var(--text-secondary);
-            padding: 6px 10px;
-            border-radius: 999px;
-            font-size: 0.85em;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .block-pill:hover {
-            background: var(--bg-primary);
-            border-color: var(--accent-color);
-            color: var(--text-primary);
-        }
-
-        .block-pill-ok {
-            border-color: #28a74533;
-            color: #1d7a34;
-            background: #e8f8ed;
-        }
-
-        .block-pill-error {
-            border-color: #dc354533;
-            color: #a71d2a;
-            background: #fbeaea;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
         }
 
         .card-item {
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            position: relative;
-            transition: all 0.3s;
-        }
-
-        .card-item:hover {
-            border-color: var(--accent-color);
-            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.15);
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px;
         }
 
         .card-header {
             display: flex;
-            justify-content: space-between;
+            flex-wrap: wrap;
             align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--border-color);
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
         }
 
         .card-number {
-            font-weight: 600;
-            color: var(--accent-color);
-            font-size: 0.9em;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
         }
 
+        .block-pill,
         .copy-card-btn {
-            padding: 6px 16px;
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.85em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+            font-size: 11px;
         }
 
-        .copy-card-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.5);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
+        .block-pill-ok {
+            color: var(--success);
+            border-color: var(--success-border);
+            background: var(--success-bg);
         }
 
-        .copy-card-btn:active::before {
-            width: 300px;
-            height: 300px;
-        }
-
-        .copy-card-btn:hover {
-            background: var(--accent-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
-        }
-
-        .copy-card-btn:active {
-            transform: translateY(0);
-        }
-
-        .copy-card-btn.copied {
-            background: #2e7d32;
-            animation: successPulse 0.5s ease;
-        }
-
-        .copy-card-btn.error {
-            background: #d32f2f;
-            animation: shake 0.5s ease;
-        }
-
-        @keyframes successPulse {
-
-            0%,
-            100% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.1);
-            }
-        }
-
-        @keyframes shake {
-
-            0%,
-            100% {
-                transform: translateX(0);
-            }
-
-            25% {
-                transform: translateX(-5px);
-            }
-
-            75% {
-                transform: translateX(5px);
-            }
+        .block-pill-error {
+            color: var(--danger);
+            border-color: var(--danger-border);
+            background: var(--danger-bg);
         }
 
         .card-section {
-            margin-bottom: 15px;
+            margin-top: 14px;
+        }
+
+        .card-section:first-of-type {
+            margin-top: 0;
+        }
+
+        .card-section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
         }
 
         .card-section-title {
-            font-weight: 600;
-            color: var(--text-tertiary);
-            font-size: 0.8em;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 500;
             text-transform: uppercase;
-            margin-bottom: 8px;
-            letter-spacing: 0.5px;
-        }
-
-        .card-content {
-            padding: 12px;
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-            font-size: 0.95em;
-            line-height: 1.6;
-            color: var(--text-primary);
+            letter-spacing: 0.08em;
         }
 
         .card-preview {
-            padding: 15px;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            font-size: 0.95em;
-            line-height: 1.6;
-            color: var(--text-primary);
-        }
-
-        .card-preview b {
-            font-weight: 600;
-        }
-
-        .card-preview ul,
-        .card-preview ol {
-            margin: 10px 0;
-            padding-left: 25px;
-        }
-
-        .card-preview li {
-            margin: 6px 0;
-        }
-
-        .batch-stats {
-            text-align: center;
-            padding: 15px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-weight: 600;
-            color: var(--accent-color);
+            min-height: 6rem;
+            padding: 14px;
+            background: var(--bg);
+            font-size: 12px;
+            line-height: 1.7;
         }
 
         .error-card {
-            border-color: #ff6b6b;
-            background: #fff5f5;
+            border-color: var(--danger-border);
+            background: var(--danger-bg);
         }
 
         .error-message {
-            color: #d32f2f;
-            font-size: 0.9em;
-            padding: 10px;
-            background: #ffebee;
+            padding: 12px;
+            border: 1px solid var(--danger-border);
             border-radius: 6px;
-            margin-top: 10px;
+            background: var(--bg);
+            color: var(--danger);
+            font-size: 12px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.02fr) minmax(280px, 0.98fr);
+            gap: 18px 28px;
+            align-items: start;
+        }
+
+        .footer-lede,
+        .footer-stack {
+            min-width: 0;
+        }
+
+        .footer-stack>*+* {
+            margin-top: 12px;
+        }
+
+        .footer p {
+            margin: 0;
+        }
+
+        .footer-meta {
+            color: var(--muted);
+        }
+
+        .footer-meta a {
+            color: inherit;
+        }
+
+        kbd {
+            padding: 1px 6px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--panel);
+            color: var(--text);
+            font: inherit;
+            font-size: 11px;
+        }
+
+        @media (max-width: 980px) {
+            .container {
+                width: min(900px, calc(100% - 36px));
+                padding: 56px 0 72px;
+            }
+
+            .header-grid,
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .converter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .single-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .batch-output {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 720px) {
+            body {
+                font-size: 13px;
+            }
+
+            .container {
+                width: calc(100% - 28px);
+                padding: 40px 0 60px;
+            }
+
+            .header-top,
+            .panel-header,
+            .card-header,
+            .card-section-head,
+            .prompt-box-header-right {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .single-actions {
+                gap: 12px;
+            }
+
+            .info-box {
+                grid-column: 1;
+            }
+
+            .tabs {
+                gap: 14px;
+                overflow-x: auto;
+            }
+
+            .tab-button {
+                white-space: nowrap;
+            }
+
+            .description,
+            .prompt-box {
+                max-width: none;
+            }
+
+            #input,
+            #batchInput {
+                min-height: 22rem;
+            }
+
+            #output,
+            .preview-box {
+                min-height: 14rem;
+            }
+
+            .copy-indicator {
+                left: 14px;
+                right: 14px;
+                bottom: 14px;
+            }
+
+            .prompt-helper {
+                max-width: none;
+                text-align: left;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="copy-indicator" id="copyIndicator">✓ Copied to clipboard!</div>
+    <div class="copy-indicator" id="copyIndicator">Copied to clipboard</div>
 
-    <div class="container">
-        <div class="header">
-            <button class="dark-mode-toggle" onclick="toggleDarkMode()" id="darkModeToggle">🌙 Dark</button>
-            <h1>Markdown to Anki HTML Converter</h1>
-            <p class="subtitle">
-                A specialized tool for converting markdown with LaTeX math notation into Anki's HTML format.
-                Supports bold text, italic, inline/block math equations, ordered/unordered lists, and more.
-            </p>
-            <div class="description">
-                <div class="description-header" onclick="toggleDescription()">
-                    <h3>What this tool does</h3>
-                    <span class="description-toggle" id="descToggle">▼</span>
+    <main class="container">
+        <header class="header">
+            <div class="header-top">
+                <div class="meta-links">
+                    <a class="home-link" href="https://tomvoelker.de" target="_blank" rel="noopener">tomvoelker.de</a>
+                    <a href="https://github.com/tomvoelker/markdown-to-anki" target="_blank" rel="noopener">repo</a>
                 </div>
-                <div class="description-content" id="descContent">
-                    <ul>
-                        <li><strong>Bold/Italic:</strong> Converts **bold** or __bold__ to &lt;b&gt;, and *italic* or
-                            _italic_ to &lt;i&gt;</li>
-                        <li><strong>Math:</strong> Inline math \(x\) or $x$ → &lt;anki-mathjax&gt;, Block math \[x\] or
-                            $$x$$ → &lt;anki-mathjax block="true"&gt;</li>
-                        <li><strong>Lists:</strong> Markdown lists (-, *, 1.) converted to proper HTML
-                            &lt;ul&gt;/&lt;ol&gt;</li>
-                        <li><strong>LaTeX environments:</strong> Supports \begin{align*}, \begin{equation}, etc.</li>
-                        <li><strong>Auto-copy:</strong> Results are automatically copied to your clipboard</li>
-                    </ul>
-                </div>
+                <button class="dark-mode-toggle" onclick="toggleDarkMode()" id="darkModeToggle">dark theme</button>
             </div>
-
-            <div class="prompt-box">
-                <div class="prompt-box-header" onclick="togglePrompt()">
-                    <h3>🤖 AI Prompt Addendum</h3>
-                    <div class="prompt-box-header-right">
-                        <span style="font-size:0.8em; color: var(--text-tertiary); font-weight: 400;">Add this to your AI prompt to get paste-ready output</span>
-                        <span class="prompt-toggle" id="promptToggle">▼</span>
-                    </div>
+            <div class="header-grid">
+                <div class="header-copy">
+                    <h1>Markdown to Anki</h1>
+                    <p class="tagline">Built for the annoying gap between generated markdown and what Anki actually accepts.</p>
+                    <p class="subtitle">
+                        Convert markdown plus LaTeX into paste-ready Anki HTML. Single cards and batch blocks both stay local,
+                        auto-copy the result, and give you a quick preview before you paste.
+                    </p>
+                    <p class="intro-links">
+                        <span>single card</span>
+                        <span>batch mode</span>
+                        <span>local-only processing</span>
+                    </p>
                 </div>
-                <div class="prompt-content" id="promptContent">
-                    <pre class="prompt-text" id="promptText">Format your response as Anki flashcard(s) using the following rules:
+                <div class="header-tools">
+                    <div class="description">
+                        <div class="description-header" onclick="toggleDescription()">
+                            <h3>What it handles</h3>
+                            <span class="description-toggle" id="descToggle">▾</span>
+                        </div>
+                        <div class="description-content" id="descContent">
+                            <ul>
+                                <li><strong>Formatting:</strong> turns markdown emphasis into Anki-friendly HTML.</li>
+                                <li><strong>Math:</strong> supports inline and block LaTeX, plus common environments.</li>
+                                <li><strong>Lists:</strong> converts bullet and numbered lists into clean HTML.</li>
+                                <li><strong>Workflow:</strong> copies converted output automatically as you type.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="prompt-box">
+                        <div class="prompt-box-header" onclick="togglePrompt()">
+                            <h3>Prompt snippet</h3>
+                            <div class="prompt-box-header-right">
+                                <span class="prompt-helper">append this to an LLM prompt to get paste-ready output</span>
+                                <span class="prompt-toggle" id="promptToggle">▾</span>
+                            </div>
+                        </div>
+                        <div class="prompt-content" id="promptContent">
+                            <pre class="prompt-text" id="promptText">Format your response as Anki flashcard(s) using the following rules:
 
 - Use **double asterisks** for bold and *single asterisks* for italic.
 - For inline math, write \(expression\) — e.g. \(x^2 + y^2 = r^2\)
@@ -943,56 +1014,58 @@ Next question here
 ```
 Next answer here
 ```</pre>
-                    <button class="copy-prompt-btn" id="copyPromptBtn" onclick="copyPrompt()">
-                        📋 Copy Prompt
-                    </button>
+                            <button class="copy-prompt-btn" id="copyPromptBtn" onclick="copyPrompt()">copy prompt</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-        </div>
+        </header>
 
         <div class="tabs">
-            <button class="tab-button active" onclick="switchTab('single')">Single Card</button>
-            <button class="tab-button" onclick="switchTab('batch')">Batch Mode</button>
+            <button class="tab-button active" onclick="switchTab('single', event)">single card</button>
+            <button class="tab-button" onclick="switchTab('batch', event)">batch mode</button>
         </div>
 
         <!-- Single Card Mode -->
         <div id="single-tab" class="tab-content active">
             <div class="converter-grid">
-                <div class="panel">
+                <div class="panel panel-fill">
                     <div class="panel-header">
-                        <span class="panel-title">📥 Markdown Input</span>
-                        <span class="status" id="inputStatus">Ready</span>
+                        <span class="panel-title">markdown</span>
+                        <span class="status" id="inputStatus">ready</span>
                     </div>
                     <div class="input-wrapper">
-                        <button class="paste-sample-btn" id="singleSampleBtn" onclick="pasteSampleSingle()">Paste
-                            Sample</button>
+                        <button class="paste-sample-btn" id="singleSampleBtn" onclick="pasteSampleSingle()">use sample</button>
                         <textarea id="input"
                             placeholder="Paste your markdown here...&#10;&#10;Example:&#10;What is a **differential equation**?&#10;&#10;A function \(f(x)\) that satisfies...&#10;&#10;- **Item one**&#10;- **Item two**"></textarea>
                     </div>
                 </div>
 
-                <div class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title">📤 Anki HTML Output</span>
-                        <span class="status" id="outputStatus">-</span>
+                <div class="converter-stack">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <span class="panel-title">anki html</span>
+                            <span class="status" id="outputStatus">-</span>
+                        </div>
+                        <textarea id="output" readonly placeholder="Anki HTML will appear here..."></textarea>
                     </div>
-                    <textarea id="output" readonly placeholder="Anki HTML will appear here..."></textarea>
-                </div>
 
-                <div class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title">👀 Live Preview</span>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <span class="panel-title">preview</span>
+                        </div>
+                        <div id="preview" class="preview-box"></div>
                     </div>
-                    <div id="preview" class="preview-box"></div>
                 </div>
             </div>
 
-            <button class="clear-btn" onclick="clearAll()">Clear All</button>
-
-            <div class="info-box" style="margin-top: 20px;">
-                <strong>Tip:</strong> The converted HTML is automatically copied to your clipboard.
-                You can paste it directly into Anki's card editor.
+            <div class="single-actions">
+                <button class="clear-btn" onclick="clearAll()">clear all</button>
+                <p class="info-box">
+                    <strong>Note:</strong> converted HTML is copied automatically, so you can paste it straight into
+                    Anki's card editor.
+                </p>
             </div>
         </div>
 
@@ -1000,49 +1073,41 @@ Next answer here
         <div id="batch-tab" class="tab-content">
             <div class="batch-input-section">
                 <div class="panel-header">
-                    <span class="panel-title">📋 Batch Input</span>
+                    <span class="panel-title">batch input</span>
                 </div>
                 <div class="input-wrapper">
-                    <button class="paste-sample-btn" id="batchSampleBtn" onclick="pasteSampleBatch()">Paste
-                        Sample</button>
+                    <button class="paste-sample-btn" id="batchSampleBtn" onclick="pasteSampleBatch()">use sample</button>
                     <div id="batchHighlights" class="batch-highlights" aria-hidden="true"></div>
                     <textarea id="batchInput" class="batch-input"
                         placeholder="Paste your batch of Q&A pairs here...&#10;&#10;Format:&#10;```&#10;Question&#10;```&#10;&#10;```&#10;Answer&#10;```&#10;&#10;-----&#10;&#10;Separate cards with ----- (5 dashes)"></textarea>
                 </div>
             </div>
 
-            <div id="batchStats" class="batch-stats" style="display: none;"></div>
+            <div id="batchStats" class="batch-stats"></div>
             <div id="batchOutput" class="batch-output"></div>
         </div>
 
-        <footer
-            style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e8ecef; color: #6c757d; font-size: 0.9em;">
-            <p style="margin-bottom: 12px;">
-                Born from frustration with LLMs generating markdown that Anki can't handle.
-                A simple, vibecoded tool built primarily for personal use.
-            </p>
-            <p style="margin-bottom: 15px; font-size: 0.9em;">
-                <kbd style="padding: 2px 6px; background: #f0f0f0; border-radius: 3px; font-size: 0.85em;">Ctrl/Cmd +
-                    K</kbd> Clear ·
-                <kbd style="padding: 2px 6px; background: #f0f0f0; border-radius: 3px; font-size: 0.85em;">Esc</kbd>
-                Close info
-            </p>
-            <p style="margin-bottom: 15px; font-size: 0.9em;">
-                <a href="https://github.com/tomvoelker/markdown-to-anki" target="_blank" rel="noopener"
-                    style="color: #0066cc; text-decoration: none;">GitHub ↗</a> ·
-                <a href="https://github.com/tomvoelker/markdown-to-anki/stargazers" target="_blank" rel="noopener"
-                    style="color: #0066cc; text-decoration: none;">⭐ Star</a> ·
-                <a href="https://github.com/tomvoelker/markdown-to-anki/issues/new" target="_blank" rel="noopener"
-                    style="color: #0066cc; text-decoration: none;">🐛 Report Bug</a>
-            </p>
-            <p style="font-size: 0.8em; color: #868e96;">
-                Math rendering by <a href="https://www.mathjax.org/" target="_blank" rel="noopener"
-                    style="color: #868e96;">MathJax</a> ·
-                All processing happens locally ·
-                Not affiliated with Anki
-            </p>
+        <footer class="footer">
+            <div class="footer-grid">
+                <p class="footer-lede">Made to clean up the last annoying step between generated markdown and usable Anki cards.</p>
+                <div class="footer-stack">
+                    <p class="footer-links">
+                        <span><kbd>Ctrl/Cmd + K</kbd> clear</span>
+                        <span><kbd>Esc</kbd> close notes</span>
+                    </p>
+                    <p class="footer-links">
+                        <a href="https://tomvoelker.de" target="_blank" rel="noopener">home</a>
+                        <a href="https://github.com/tomvoelker/markdown-to-anki" target="_blank" rel="noopener">github</a>
+                        <a href="https://github.com/tomvoelker/markdown-to-anki/issues/new" target="_blank" rel="noopener">report issue</a>
+                    </p>
+                    <p class="footer-meta">
+                        Math rendering by <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a>.
+                        All processing happens locally. Not affiliated with Anki.
+                    </p>
+                </div>
+            </div>
         </footer>
-    </div>
+    </main>
 
     <script>
         const input = document.getElementById('input');
@@ -1317,19 +1382,20 @@ Next answer here
         }
 
         function showCopyError() {
-            copyIndicator.textContent = '✗ Copy failed!';
-            copyIndicator.style.background = '#d32f2f';
-            copyIndicator.classList.add('show');
+            copyIndicator.textContent = 'Copy failed';
+            copyIndicator.classList.add('show', 'error');
             setTimeout(() => {
                 copyIndicator.classList.remove('show');
                 setTimeout(() => {
-                    copyIndicator.textContent = '✓ Copied to clipboard!';
-                    copyIndicator.style.background = '#2e7d32';
+                    copyIndicator.textContent = 'Copied to clipboard';
+                    copyIndicator.classList.remove('error');
                 }, 300);
             }, 2000);
         }
 
         function showCopyIndicator() {
+            copyIndicator.textContent = 'Copied to clipboard';
+            copyIndicator.classList.remove('error');
             copyIndicator.classList.add('show');
             setTimeout(() => {
                 copyIndicator.classList.remove('show');
@@ -1359,7 +1425,7 @@ Next answer here
                 sampleBtn.classList.add('hidden');
             }
 
-            updateStatus(inputStatus, 'Converting...', false);
+            updateStatus(inputStatus, 'converting...', false);
 
             debounceTimer = setTimeout(async () => {
                 const markdown = input.value;
@@ -1370,8 +1436,8 @@ Next answer here
                 if (ankiHtml) {
                     const copied = await copyToClipboard(ankiHtml);
                     if (copied) {
-                        updateStatus(inputStatus, 'Ready', false);
-                        updateStatus(outputStatus, 'Copied!', true);
+                        updateStatus(inputStatus, 'ready', false);
+                        updateStatus(outputStatus, 'copied', true);
                         setTimeout(() => {
                             hideStatus(outputStatus);
                         }, 2000);
@@ -1412,14 +1478,14 @@ Next answer here
             const original = btn.innerHTML;
             try {
                 await writeToClipboard(text);
-                btn.innerHTML = '✓ Copied!';
+                btn.innerHTML = 'copied';
                 btn.classList.add('copied');
                 setTimeout(() => {
                     btn.innerHTML = original;
                     btn.classList.remove('copied');
                 }, 2000);
             } catch (e) {
-                btn.innerHTML = '✗ Failed';
+                btn.innerHTML = 'failed';
                 setTimeout(() => { btn.innerHTML = original; }, 2000);
             }
         }
@@ -1480,7 +1546,7 @@ The formula is:
         const batchHighlights = document.getElementById('batchHighlights');
         let batchDebounceTimer;
 
-        function switchTab(tabName) {
+        function switchTab(tabName, event) {
             // Update tab buttons
             document.querySelectorAll('.tab-button').forEach(btn => {
                 btn.classList.remove('active');
@@ -1580,7 +1646,7 @@ The formula is:
             }
 
             batchStats.style.display = 'block';
-            batchStats.textContent = `📚 ${cards.length} card${cards.length === 1 ? '' : 's'} processed`;
+            batchStats.textContent = `${cards.length} card${cards.length === 1 ? '' : 's'} processed`;
 
             trackEvent('/batch-process-' + cards.length + '-cards');
 
@@ -1592,7 +1658,7 @@ The formula is:
                                 <span class="card-number">Card ${card.index}</span>
                                 <button class="block-pill block-pill-error" title="Jump to input"
                                     onclick="jumpToLine(${card.startLine || 1})">
-                                    ⚠️ Block ${card.index} · line ${card.startLine || 'n/a'}
+                                    line ${card.startLine || 'n/a'}
                                 </button>
                             </div>
                             <div class="error-message">${card.error}</div>
@@ -1615,30 +1681,30 @@ The formula is:
                             <span class="card-number">Card ${card.index}</span>
                             <button class="block-pill block-pill-ok" title="Jump to input"
                                 onclick="jumpToLine(${card.startLine || 1})">
-                                ✅ Block ${card.index} · line ${card.startLine || 'n/a'}
+                                line ${card.startLine || 'n/a'}
                             </button>
-                            <button class="copy-card-btn" onclick="copyCard(${card.index}, '${escapeHtml(questionHtml)}', '${escapeHtml(answerHtml)}')">
-                                📋 Copy Both
+                            <button class="copy-card-btn" onclick="copyCard(this, ${card.index}, '${escapeHtml(questionHtml)}', '${escapeHtml(answerHtml)}')">
+                                copy both
                             </button>
                         </div>
 
                         <div class="card-section">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div class="card-section-head">
                                 <span class="card-section-title">Question</span>
-                                <button class="copy-card-btn" style="font-size: 0.75em; padding: 4px 10px;"
-                                        onclick="copyCardPart(${card.index}, 'question', '${escapeHtml(questionHtml)}')">
-                                    Copy
+                                <button class="copy-card-btn"
+                                        onclick="copyCardPart(this, ${card.index}, 'question', '${escapeHtml(questionHtml)}')">
+                                    copy
                                 </button>
                             </div>
                             <div class="card-preview card-preview-${card.index}-q">${questionPreview}</div>
                         </div>
 
                         <div class="card-section">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div class="card-section-head">
                                 <span class="card-section-title">Answer</span>
-                                <button class="copy-card-btn" style="font-size: 0.75em; padding: 4px 10px;"
-                                        onclick="copyCardPart(${card.index}, 'answer', '${escapeHtml(answerHtml)}')">
-                                    Copy
+                                <button class="copy-card-btn"
+                                        onclick="copyCardPart(this, ${card.index}, 'answer', '${escapeHtml(answerHtml)}')">
+                                    copy
                                 </button>
                             </div>
                             <div class="card-preview card-preview-${card.index}-a">${answerPreview}</div>
@@ -1654,7 +1720,6 @@ The formula is:
                 MathJax.typesetPromise([...previews]).catch((err) => console.log('MathJax error:', err));
             }
 
-            renderBatchBlockMarkers(cards);
         }
 
         function escapeHtml(text) {
@@ -1694,14 +1759,14 @@ The formula is:
             });
         }
 
-        async function copyCard(index, questionHtml, answerHtml) {
+        async function copyCard(button, index, questionHtml, answerHtml) {
             const text = `Question: ${questionHtml}\n\nAnswer: ${answerHtml}`;
-            const btn = event.target;
+            const btn = button;
             const originalText = btn.textContent;
 
             try {
                 await writeToClipboard(text);
-                btn.textContent = '✓ Copied!';
+                btn.textContent = 'copied';
                 btn.classList.remove('error');
                 btn.classList.add('copied');
                 showCopyIndicator();
@@ -1712,7 +1777,7 @@ The formula is:
                 }, 2000);
             } catch (err) {
                 console.error('Failed to copy:', err);
-                btn.textContent = '✗ Failed';
+                btn.textContent = 'failed';
                 btn.classList.remove('copied');
                 btn.classList.add('error');
                 setTimeout(() => {
@@ -1722,13 +1787,13 @@ The formula is:
             }
         }
 
-        async function copyCardPart(index, part, html) {
-            const btn = event.target;
+        async function copyCardPart(button, index, part, html) {
+            const btn = button;
             const originalText = btn.textContent;
 
             try {
                 await writeToClipboard(html);
-                btn.textContent = '✓';
+                btn.textContent = 'copied';
                 btn.classList.remove('error');
                 btn.classList.add('copied');
                 showCopyIndicator();
@@ -1739,7 +1804,7 @@ The formula is:
                 }, 1500);
             } catch (err) {
                 console.error('Failed to copy:', err);
-                btn.textContent = '✗';
+                btn.textContent = 'failed';
                 btn.classList.remove('copied');
                 btn.classList.add('error');
                 setTimeout(() => {
@@ -1864,6 +1929,7 @@ The formula is:
                 batchInput.value = '';
                 batchOutput.innerHTML = '';
                 batchStats.style.display = 'none';
+                updateBatchHighlights('');
             }
 
             // Escape: Close description if open
@@ -1888,7 +1954,7 @@ The formula is:
             html.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
 
-            toggle.textContent = newTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
+            toggle.textContent = newTheme === 'dark' ? 'light theme' : 'dark theme';
 
             // Track theme change (only on deployed version)
             if (window.goatcounter) {
@@ -1907,14 +1973,17 @@ The formula is:
             // Update toggle button when it's available
             window.addEventListener('load', () => {
                 const toggle = document.getElementById('darkModeToggle');
-                if (toggle) toggle.textContent = '☀️ Light';
+                if (toggle) toggle.textContent = 'light theme';
             });
         }
 
         // ============= ANALYTICS (DEPLOYED VERSION ONLY) =============
 
-        // Only load GoatCounter on GitHub Pages, not on localhost
-        if (window.location.hostname.includes('github.io')) {
+        const isDeployedSite = ['tomvoelker.de', 'www.tomvoelker.de'].includes(window.location.hostname)
+            || window.location.hostname.includes('github.io');
+
+        // Only load GoatCounter on deployed hosts, not on localhost
+        if (isDeployedSite) {
             const script = document.createElement('script');
             script.setAttribute('data-goatcounter', 'https://tomvoelker.goatcounter.com/count');
             script.setAttribute('async', '');
@@ -1924,7 +1993,7 @@ The formula is:
 
         // Helper to track custom events (only works when deployed)
         function trackEvent(eventName) {
-            if (window.goatcounter && window.location.hostname.includes('github.io')) {
+            if (window.goatcounter && isDeployedSite) {
                 window.goatcounter.count({ path: eventName, event: true });
             }
         }
